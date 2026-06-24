@@ -1,23 +1,393 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="en">
 <head>
-    <title>Image Upload Test</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Compressify</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#eef2ff;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+padding:20px;
+transition:0.3s;
+}
+
+.container{
+background:white;
+padding:40px;
+width:500px;
+max-width:100%;
+border-radius:15px;
+box-shadow:0 10px 30px rgba(0,0,0,.1);
+text-align:center;
+}
+
+h1{
+margin-bottom:10px;
+}
+
+p{
+color:#666;
+margin-bottom:20px;
+}
+
+button{
+background:#2563eb;
+color:white;
+border:none;
+padding:12px 25px;
+border-radius:8px;
+cursor:pointer;
+font-size:16px;
+}
+
+button:hover{
+background:#1d4ed8;
+}
+
+#dropArea{
+border:2px dashed #2563eb;
+padding:30px;
+margin:20px 0;
+border-radius:10px;
+cursor:pointer;
+background:#f8faff;
+}
+
+#dropArea:hover{
+background:#eef4ff;
+}
+
+#previewImage{
+max-width:100%;
+max-height:250px;
+display:none;
+border-radius:10px;
+margin-top:15px;
+}
+
+.slider-box{
+margin:20px 0;
+}
+
+#result{
+margin-top:25px;
+padding:20px;
+border-radius:10px;
+background:#f5f7ff;
+display:none;
+}
+
+.download-btn{
+display:inline-block;
+margin-top:15px;
+padding:10px 20px;
+background:green;
+color:white;
+text-decoration:none;
+border-radius:8px;
+}
+
+.compare{
+display:flex;
+justify-content:center;
+gap:20px;
+flex-wrap:wrap;
+margin:20px 0;
+}
+
+.compare img{
+width:150px;
+border-radius:10px;
+}
+
+.dark{
+background:#111827;
+}
+
+.dark .container{
+background:#1f2937;
+color:white;
+}
+
+.dark p{
+color:#d1d5db;
+}
+
+.dark #result{
+background:#374151;
+}
+
+.dark #dropArea{
+background:#374151;
+color:white;
+border-color:#60a5fa;
+}
+
+@media(max-width:600px){
+
+.container{
+width:95%;
+padding:20px;
+}
+
+.compare{
+flex-direction:column;
+align-items:center;
+}
+
+.compare img{
+width:200px;
+}
+
+h1{
+font-size:28px;
+}
+
+}
+
+</style>
+
 </head>
+
 <body>
 
-<h1>Upload Image</h1>
+<div class="container">
 
-<form action="http://localhost:3000/upload"
-      method="POST"
-      enctype="multipart/form-data">
+<h1>🖼 Compressify</h1>
 
-    <input type="file" name="image">
+<button id="themeBtn">
+🌙 Dark Mode
+</button>
 
-    <button type="submit">
-        Upload
-    </button>
+<br><br>
+
+<p>Upload an image and reduce its size instantly.</p>
+
+<form id="uploadForm">
+
+<div id="dropArea">
+📂 Drop Image Here
+<br>
+or Click to Upload
+</div>
+
+<input
+type="file"
+name="image"
+id="image"
+style="display:none;"
+>
+
+<img id="previewImage">
+
+<div class="slider-box">
+
+<label>
+Image Quality:
+<span id="qualityValue">60</span>%
+</label>
+
+<br><br>
+
+<input
+type="range"
+id="quality"
+min="10"
+max="100"
+value="60"
+
+>
+
+</div>
+
+<button type="submit">
+Compress Image
+</button>
 
 </form>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
+const imageInput =
+document.getElementById("image");
+
+const previewImage =
+document.getElementById("previewImage");
+
+const qualitySlider =
+document.getElementById("quality");
+
+const qualityValue =
+document.getElementById("qualityValue");
+
+const dropArea =
+document.getElementById("dropArea");
+
+qualitySlider.addEventListener("input", () => {
+qualityValue.textContent =
+qualitySlider.value;
+});
+
+dropArea.addEventListener("click", () => {
+imageInput.click();
+});
+
+dropArea.addEventListener("dragover", (e) => {
+e.preventDefault();
+});
+
+dropArea.addEventListener("drop", (e) => {
+
+e.preventDefault();
+
+imageInput.files =
+e.dataTransfer.files;
+
+const file =
+e.dataTransfer.files[0];
+
+if(file){
+
+previewImage.src =
+URL.createObjectURL(file);
+
+previewImage.style.display =
+"block";
+
+}
+
+});
+
+imageInput.addEventListener("change", function(){
+
+const file = this.files[0];
+
+if(file){
+
+previewImage.src =
+URL.createObjectURL(file);
+
+previewImage.style.display =
+"block";
+
+}
+
+});
+
+document
+.getElementById("uploadForm")
+.addEventListener("submit", async function(e){
+
+e.preventDefault();
+
+const formData = new FormData();
+
+formData.append(
+"image",
+imageInput.files[0]
+);
+
+formData.append(
+"quality",
+qualitySlider.value
+);
+
+const response =
+await fetch(
+"http://localhost:3000/upload",
+{
+method:"POST",
+body:formData
+}
+);
+
+const data =
+await response.json();
+
+document.getElementById("result").style.display =
+"block";
+
+document.getElementById("result").innerHTML =
+
+`<h3>Compression Complete 🎉</h3>
+
+<div class="compare">
+
+<div>
+<h4>Original</h4>
+<img src="${previewImage.src}">
+</div>
+
+<div>
+<h4>Compressed</h4>
+<img src="http://localhost:3000/compressed/${data.fileName}">
+</div>
+
+</div>
+
+<p>
+Original Size:
+<b>${(data.originalSize/1024).toFixed(2)} KB</b>
+</p>
+
+<p>
+Compressed Size:
+<b>${(data.compressedSize/1024).toFixed(2)} KB</b>
+</p>
+
+<p>
+Saved:
+<b>${data.savedPercent}%</b>
+</p>
+
+<a
+class="download-btn"
+href="http://localhost:3000/compressed/${data.fileName}"
+download
+>
+Download Image
+</a>`;
+
+});
+
+const themeBtn =
+document.getElementById("themeBtn");
+
+themeBtn.addEventListener("click",()=>{
+
+document.body.classList.toggle("dark");
+
+if(document.body.classList.contains("dark")){
+themeBtn.innerHTML =
+"☀️ Light Mode";
+}
+else{
+themeBtn.innerHTML =
+"🌙 Dark Mode";
+}
+
+});
+
+</script>
 
 </body>
 </html>

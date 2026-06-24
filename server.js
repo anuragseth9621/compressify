@@ -23,14 +23,7 @@ const upload = multer({
 app.use("/compressed", express.static("compressed"));
 
 app.get("/", (req, res) => {
-  res.send(`
-    <h1>Upload Image</h1>
-
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-      <input type="file" name="image">
-      <button type="submit">Upload</button>
-    </form>
-  `);
+  res.sendFile(path.join(__dirname, "upload.html"));
 });
 
 app.post("/upload", upload.single("image"), async (req, res) => {
@@ -43,8 +36,11 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     const compressedPath =
       path.join("compressed", compressedFileName);
 
-    await sharp(uploadedPath)
-      .jpeg({ quality: 60 })
+      const quality =
+      parseInt(req.body.quality) || 60;
+      
+      await sharp(uploadedPath)
+      .jpeg({ quality })
       .toFile(compressedPath);
 
       const fs = require("fs");
