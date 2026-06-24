@@ -3,9 +3,21 @@ const express = require("express");
 const multer = require("multer");
 const sharp = require("sharp");
 const path = require("path");
+const fs = require("fs");
 
 const app = express();
+
 app.use(cors());
+
+// Create folders automatically if they don't exist
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
+if (!fs.existsSync("compressed")) {
+  fs.mkdirSync("compressed");
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -36,31 +48,28 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     const compressedPath =
       path.join("compressed", compressedFileName);
 
-      const quality =
+    const quality =
       parseInt(req.body.quality) || 60;
-      
-      await sharp(uploadedPath)
+
+    await sharp(uploadedPath)
       .jpeg({ quality })
       .toFile(compressedPath);
 
-      const fs = require("fs");
+    const originalSize = fs.statSync(uploadedPath).size;
 
-      const originalSize = fs.statSync(uploadedPath).size;
-      
-      const compressedSize = fs.statSync(compressedPath).size;
-      
-      const savedPercent = Math.round(
-        ((originalSize - compressedSize) / originalSize) * 100
-      );
-      
-      res.json({
-        success: true,
-        fileName: compressedFileName,
-        originalSize,
-        compressedSize,
-        savedPercent,
-      });
+    const compressedSize = fs.statSync(compressedPath).size;
 
+    const savedPercent = Math.round(
+      ((originalSize - compressedSize) / originalSize) * 100
+    );
+
+    res.json({
+      success: true,
+      fileName: compressedFileName,
+      originalSize,
+      compressedSize,
+      savedPercent,
+    });
   } catch (error) {
     console.error(error);
 
@@ -69,6 +78,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`Server Started on ${PORT}`);
 });
