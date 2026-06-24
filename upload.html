@@ -190,7 +190,9 @@ or Click to Upload
 type="file"
 name="image"
 id="image"
+required
 style="display:none;"
+
 >
 
 <img id="previewImage">
@@ -311,13 +313,12 @@ formData.append(
 qualitySlider.value
 );
 
-const response =
-await fetch(
-"http://localhost:3000/upload",
-{
-method:"POST",
-body:formData
-}
+const response = await fetch(
+  "https://compressify-dfiw.onrender.com/upload",
+  {
+    method: "POST",
+    body: formData
+  }
 );
 
 const data =
@@ -339,7 +340,7 @@ document.getElementById("result").innerHTML =
 
 <div>
 <h4>Compressed</h4>
-<img src="http://localhost:3000/compressed/${data.fileName}">
+<img src="https://compressify-dfiw.onrender.com/compressed/${data.fileName}">
 </div>
 
 </div>
@@ -359,11 +360,9 @@ Saved:
 <b>${data.savedPercent}%</b>
 </p>
 
-<a
-class="download-btn"
-href="http://localhost:3000/compressed/${data.fileName}"
-download
->
+<a class="download-btn"
+href="https://compressify-dfiw.onrender.com/compressed/${data.fileName}"
+download="compressed-image.jpg">
 Download Image
 </a>`;
 
